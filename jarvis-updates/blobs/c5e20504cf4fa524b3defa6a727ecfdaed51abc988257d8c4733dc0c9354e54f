@@ -1,0 +1,19 @@
+"""Decide whether the portable MFD can be started or reused."""
+import ntpath
+import sys
+
+
+def decide(expected, processes):
+    target = ntpath.normcase(ntpath.normpath(expected))
+    paths = [p.get("exe") for p in processes
+             if (p.get("name") or "").casefold() == "jarvis_v194.exe"]
+    if not paths:
+        return "start"
+    if len(paths) == 1 and paths[0] and ntpath.normcase(ntpath.normpath(paths[0])) == target:
+        return "reuse"
+    return "blocked"
+
+
+if __name__ == "__main__":
+    import psutil
+    print(decide(sys.argv[1], (p.info for p in psutil.process_iter(["name", "exe"]))))

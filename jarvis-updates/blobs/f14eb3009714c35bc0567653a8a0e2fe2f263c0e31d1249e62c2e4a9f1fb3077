@@ -1,0 +1,32 @@
+from pathlib import Path
+import os
+import runpy
+import subprocess
+
+root = Path(os.environ["JARVIS_CANDIDATE_ROOT"])
+system = root / "SYSTEME_JARVIS"
+engine = system / "MOTEUR_V196/JARVIS_V196_50_STABLE_OEIL_OPTIONNEL"
+assert (engine / "lmu_vehicle_identity_v58.py").is_file(), "Installation V58 requise"
+assert (engine / "background_mfd_v194/bin/Debug/net10.0/JARVIS_V194.exe").is_file()
+decide = runpy.run_path(str(engine / "TOOLS/mfd_launch_guard.py"))["decide"]
+expected = r"C:\Sim Racing\V58\JARVIS_V194.exe"
+def mfd(path):
+    return {"name": "jarvis_v194.EXE", "exe": path}
+
+irrelevant = {"name": "python.exe", "exe": None}
+assert decide(expected, [irrelevant]) == "start"
+assert decide(expected, [irrelevant, mfd(expected.swapcase())]) == "reuse"
+assert decide(expected, [mfd(expected.replace("58", "54"))]) == "blocked"
+assert decide(expected, [mfd(None)]) == "blocked"
+assert decide(expected, [mfd(expected), mfd(expected)]) == "blocked"
+launcher = system / "DEMARRER_MOTEUR_SILENCIEUX.ps1"
+script = launcher.read_text(encoding="utf-8-sig")
+assert "LANCER_V194_BACKGROUND_ADMIN.bat" not in script
+assert script.index("WaitOne(") < script.index("$decision =") < script.index("switch -Exact")
+start = script.split("'start' {",1)[1].split("'reuse' {",1)[0]
+assert start.index("Remove-Item") < start.index("Start-Process -FilePath $mfd")
+assert script.count("Start-Process -FilePath $mfd ") == 1
+assert script.index("'reuse' {") < script.index("wait_mfd_ready.py")
+if os.name == "nt":
+    cmd = "$e=$null;$t=$null;[System.Management.Automation.Language.Parser]::ParseFile($env:JARVIS_LAUNCH_TEST,[ref]$t,[ref]$e)|Out-Null;if($e.Count){throw $e[0]}"
+    subprocess.run(["powershell.exe","-NoProfile","-Command",cmd],env=dict(os.environ,JARVIS_LAUNCH_TEST=str(launcher)),check=True)

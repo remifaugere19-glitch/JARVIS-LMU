@@ -1,0 +1,96 @@
+﻿$ErrorActionPreference = 'Stop'
+$root = $PSScriptRoot
+$script:JarvisPython = Join-Path $root 'ENV_JARVIS_PUBLIC\Scripts\python.exe'
+if (-not (Test-Path -LiteralPath $script:JarvisPython)) { throw 'Environnement Jarvis absent : lancer 01 - INSTALLER JARVIS.bat' }
+$env:PATH=(Join-Path $root 'ENV_JARVIS_PUBLIC\Scripts')+';'+$env:PATH
+$engine = Join-Path $root 'MOTEUR_V196\JARVIS_V196_50_STABLE_OEIL_OPTIONNEL'
+$logs = Join-Path $root 'JOURNAUX_DIAGNOSTIC'
+New-Item -ItemType Directory -Force -Path $logs | Out-Null
+function Log($m) { Add-Content -LiteralPath (Join-Path $logs 'lancement.log') -Value ((Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' ' + $m) -Encoding UTF8 }
+# Statut explicite consultable par l'interface. Aucune modification du moteur historique.
+function Status($code,$message) {
+  $target=Join-Path $logs 'statut_demarrage.json'
+  $tmp=$target+'.tmp.'+[Diagnostics.Process]::GetCurrentProcess().Id
+  $data=@{time=(Get-Date).ToString('o');code=$code;message=$message;installation=$root} | ConvertTo-Json -Compress
+  [IO.File]::WriteAllText($tmp,$data,[Text.UTF8Encoding]::new($false))
+  Move-Item -LiteralPath $tmp -Destination $target -Force
+  Log ($code+': '+$message)
+}
+function Exists($pattern) {
+  return @(Get-CimInstance Win32_Process -Filter "Name = 'python.exe' OR Name = 'pythonw.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains($pattern) -and $_.CommandLine.Contains($engine) }).Count -gt 0
+}
+# Refuse un second ensemble moteur/bridge/setup, y compris d'une ancienne copie.
+# Aucun processus n'est arrete automatiquement : le JARVIS personnel est protege.
+function OtherJarvisActive {
+  $foreign = @(Get-CimInstance Win32_Process -Filter "Name = 'python.exe' OR Name = 'pythonw.exe'" | Where-Object {
+    $line = [string]$_.CommandLine
+    $isComponent = $line.Contains('live_voice_session_v195.py') -or
+                   $line.Contains('lmu_readonly_bridge_v191.py') -or
+                   $line.Contains('RUN_SETUP_LIVE_V196_56.py')
+    $isComponent -and (-not $line.Contains($engine))
+  })
+  return $foreign.Count -gt 0
+}
+function AnyVoiceActive {
+  return @(Get-CimInstance Win32_Process -Filter "Name = 'python.exe' OR Name = 'pythonw.exe'" | Where-Object {
+    $_.CommandLine -and $_.CommandLine.Contains('live_voice_session_v195.py')
+  }).Count -gt 0
+}
+function RunHiddenPython($file, $label, $args='') {
+  if (Exists ([IO.Path]::GetFileName($file))) { Log "$label deja actif"; return }
+  $exe = $script:JarvisPython
+  $env:LMU_ENGINEER_DATA_DIR = Join-Path $engine 'TROISIEME_OEIL\RUNTIME'
+  $stamp = Get-Date -Format 'yyyyMMdd_HHmmss_fff'
+  Start-Process -FilePath $exe -ArgumentList ('"' + $file + '" ' + $args) -WorkingDirectory $engine -WindowStyle Hidden -RedirectStandardOutput (Join-Path $logs "$label`_$stamp.out.log") -RedirectStandardError (Join-Path $logs "$label`_$stamp.err.log")
+  Log "$label lance"
+}
+$mutex = $null
+$lockHeld = $false
+try {
+  # Verrou global pendant toute la sequence de lancement (anti-course entre deux ZIP).
+  $mutex = New-Object System.Threading.Mutex($false, 'Local\JARVIS_V196_GITHUB_STARTUP_LOCK')
+  try { $lockHeld = $mutex.WaitOne(15000) } catch [System.Threading.AbandonedMutexException] { $lockHeld = $true }
+  if (-not $lockHeld) { Status 'BLOCKED' 'Un autre lancement JARVIS est en cours'; exit 0 }
+  if (OtherJarvisActive) { Status 'BLOCKED' 'Une autre copie JARVIS a une voix, un bridge ou un setup actif. Fermer les anciennes copies puis relancer. Aucun processus n a ete arrete.'; exit 0 }
+  if (AnyVoiceActive) { Status 'BLOCKED' 'Une voix JARVIS est deja active. Aucun second moteur ne sera lance.'; exit 0 }
+  Status 'STARTING' 'Demarrage du moteur, attente MFD READY puis bridge et voix'
+  if (-not (Test-Path -LiteralPath $engine)) { throw 'Dossier moteur absent' }
+  $mfdDir = Join-Path $engine 'background_mfd_v194'
+  $mfd = Join-Path $mfdDir 'bin\Debug\net10.0\JARVIS_V194.exe'
+  if (-not (Test-Path -LiteralPath $mfd -PathType Leaf)) { throw 'Executable MFD portable absent' }
+  $guard = Join-Path $engine 'TOOLS\mfd_launch_guard.py'
+  $decision = & $script:JarvisPython $guard $mfd
+  if ($LASTEXITCODE -ne 0) { throw 'Verification du processus MFD impossible' }
+  switch -Exact ($decision) {
+    'start' {
+      $ready = Join-Path (Split-Path $mfd) 'runtime\mfd_state.json'
+      if (Test-Path -LiteralPath $ready) { Remove-Item -LiteralPath $ready -ErrorAction Stop }
+      Start-Process -FilePath $mfd -WorkingDirectory $mfdDir -Verb RunAs -WindowStyle Hidden -ErrorAction Stop
+      Log 'MFD portable lance'
+    }
+    'reuse' { Log 'MFD de cette installation deja actif' }
+    default { throw 'MFD actif dans une autre copie, en double ou de chemin non identifiable. Consulter les processus JARVIS_V194.exe.' }
+  }
+  $wait = Join-Path $engine 'TOOLS\wait_mfd_ready.py'
+  $exe = $script:JarvisPython
+  $proc = Start-Process -FilePath $exe -ArgumentList ('"' + $wait + '"') -WorkingDirectory $engine -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $logs 'mfd_ready.out.log') -RedirectStandardError (Join-Path $logs 'mfd_ready.err.log')
+  if ($proc.ExitCode -ne 0) { throw 'MFD non READY. Consulter mfd_ready.err.log et relancer en mode diagnostic.' }
+  RunHiddenPython (Join-Path $engine 'bridge_v191\lmu_readonly_bridge_v191.py') 'bridge_v191'
+  Start-Sleep -Seconds 3
+  $runtime = Join-Path $engine 'runtime_source_v191.json'
+  if (-not (Test-Path -LiteralPath $runtime)) {
+    Log 'ALERTE: bridge sans fichier runtime apres 3 secondes; consulter bridge_v191_*.err.log et *.out.log'
+  } else {
+    Log 'Bridge runtime present (fraicheur a verifier dans LMU)'
+  }
+  RunHiddenPython (Join-Path $engine 'RUN_SETUP_LIVE_V196_56.py') 'setup_v196'
+  Start-Sleep -Seconds 1
+  if ((OtherJarvisActive) -or (AnyVoiceActive)) { Status 'BLOCKED' 'Autre installation ou voix detectee pendant le lancement. Voix non relancee.'; exit 0 }
+  RunHiddenPython (Join-Path $engine 'voice_v195\live_voice_session_v195.py') 'voix_v196'
+  Status 'LAUNCHED' 'Bridge, setup et voix demarres. Verifier la telemetrie en direct.'
+  exit 0
+} catch { Status 'ERROR' ('Echec du lancement: ' + $_.Exception.Message); exit 1 }
+finally {
+  if ($lockHeld -and $null -ne $mutex) { $mutex.ReleaseMutex() }
+  if ($null -ne $mutex) { $mutex.Dispose() }
+}

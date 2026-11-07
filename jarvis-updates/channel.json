@@ -1,1 +1,31 @@
-{"protocol":1,"updates":[]}
+{
+  "protocol": 1,
+  "updates": [
+    {
+      "revision": 1,
+      "id": "v58-lancement-mfd",
+      "title": "v58-lancement-mfd",
+      "files": [
+        {
+          "path": "SYSTEME_JARVIS/DEMARRER_MOTEUR_SILENCIEUX.ps1",
+          "before": "0ed595d1389205012204592a16fd90a31f94567f82f8bd57f116585ae04616f8",
+          "after": "50aee63238e5cff1fd655d771554f9bada3b16092ca7fcb26ed4bd580cc52d10"
+        },
+        {
+          "path": "SYSTEME_JARVIS/MOTEUR_V196/JARVIS_V196_50_STABLE_OEIL_OPTIONNEL/TOOLS/mfd_launch_guard.py",
+          "before": null,
+          "after": "c5e20504cf4fa524b3defa6a727ecfdaed51abc988257d8c4733dc0c9354e54f"
+        }
+      ],
+      "checks": [
+        {
+          "name": "test_lancement_v58.py",
+          "sha256": "f14eb3009714c35bc0567653a8a0e2fe2f263c0e31d1249e62c2e4a9f1fb3077",
+          "timeout": 180
+        }
+      ],
+      "restart": true,
+      "allow_protected_data": false
+    }
+  ]
+}
