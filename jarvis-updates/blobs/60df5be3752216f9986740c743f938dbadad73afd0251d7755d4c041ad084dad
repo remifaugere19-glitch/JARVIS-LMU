@@ -1,0 +1,10 @@
+from pathlib import Path
+import os
+root = Path(os.environ['JARVIS_CANDIDATE_ROOT'])/'SYSTEME_JARVIS'
+assert next((root/'MOTEUR_V196').glob('*/lmu_vehicle_identity_v58.py')).is_file()
+ui = (root/'INTERFACE/index.html').read_text(encoding='utf-8')
+ps = (root/'DEMARRER_MOTEUR_SILENCIEUX.ps1').read_text(encoding='utf-8-sig')
+assert 'Imola V58 · V196' in ui
+assert "['BLOCKED','ERROR','VOICE_PRESENT'].includes(j.startup.code)?j.startup.message" in ui
+assert "Moteur bloqué : autre copie JARVIS active" not in ui
+assert ps.index('if (OtherJarvisActive)') < ps.index("Status 'VOICE_PRESENT'") < ps.index('if (AnyVoiceActive)') < ps.index("Status 'STARTING'")

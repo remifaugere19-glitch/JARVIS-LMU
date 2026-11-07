@@ -26,6 +26,32 @@
       ],
       "restart": true,
       "allow_protected_data": false
+    },
+    {
+      "revision": 2,
+      "id": "v58-statut-demarrage",
+      "title": "v58-statut-demarrage",
+      "files": [
+        {
+          "path": "SYSTEME_JARVIS/DEMARRER_MOTEUR_SILENCIEUX.ps1",
+          "before": "50aee63238e5cff1fd655d771554f9bada3b16092ca7fcb26ed4bd580cc52d10",
+          "after": "6a117456f49599df225352206cb8eb3b9f70934228ef5bfd6024fb06a76e418a"
+        },
+        {
+          "path": "SYSTEME_JARVIS/INTERFACE/index.html",
+          "before": "7e099221671ae0b02a8207ca0b804b9fa4ed3f82a99042766d85836ec2979e05",
+          "after": "babeb63cf590748422e4b9f3ff43a03a82eca858db3816893e83bbce33b8080c"
+        }
+      ],
+      "checks": [
+        {
+          "name": "test_statut_v58.py",
+          "sha256": "60df5be3752216f9986740c743f938dbadad73afd0251d7755d4c041ad084dad",
+          "timeout": 180
+        }
+      ],
+      "restart": true,
+      "allow_protected_data": false
     }
   ]
 }
