@@ -1,0 +1,12 @@
+{
+  "format": "jarvis-dev-patch-v1",
+  "id": "essai-copie-v17-001",
+  "description": "Test reel et sans risque : remplace uniquement un fichier temoin DEV_CONNECT_TEST/essai_connexion.txt dans la copie de test; aucune fonction JARVIS touchee.",
+  "changes": [
+    {
+      "path": "DEV_CONNECT_TEST/essai_connexion.txt",
+      "expected_sha256": "1ab4a1422fa188e82e9bf477fc4296d572c4dc2e180e84ce3d9bac0139a9ff1e",
+      "new_text": "JARVIS DEV CONNECT - TEST LOCAL\nEtat : APRES\nTransmission GitHub et modification de copie : OK\n"
+    }
+  ]
+}
