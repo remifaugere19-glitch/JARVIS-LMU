@@ -1,0 +1,12 @@
+{
+  "schema_version": "0.1",
+  "id": "test-lecture-seule-001",
+  "description": "Test de détection GitHub uniquement — aucune modification JARVIS",
+  "kind": "read_only_test",
+  "status": "PROPOSED",
+  "target_relative_path": null,
+  "base_sha256": null,
+  "proposed_sha256": null,
+  "requires_restart": false,
+  "apply_allowed": false
+}
