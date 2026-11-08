@@ -1,0 +1,12 @@
+{
+  "format": "jarvis-dev-patch-v1",
+  "id": "test-copie-001",
+  "description": "Essai sans risque sur un dossier factice, jamais sur JARVIS",
+  "changes": [
+    {
+      "path": "etat_test.txt",
+      "expected_sha256": "20c142127f60f227bd5c7c9d7517ba70448273241758c3d7389e78a6346c96f6",
+      "new_text": "Mode : TEST UNIQUEMENT\nÉtat : APRÈS\n"
+    }
+  ]
+}
