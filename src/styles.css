@@ -1,0 +1,268 @@
+:root {
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --neutral-50: #f7f8fa;
+  --neutral-100: #eceff3;
+  --neutral-200: #d9dee6;
+  --neutral-500: #5f6b7a;
+  --neutral-700: #334155;
+  --neutral-900: #0f172a;
+  --primary-600: #1d4ed8;
+  --primary-700: #1e40af;
+  --error-600: #b91c1c;
+  --danger-600: #b42318;
+  --radius: 8px;
+  color-scheme: light;
+  font-family: var(--font);
+  color: var(--neutral-900);
+  background: var(--neutral-50);
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+h1,
+h2 {
+  line-height: 1.2;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 28px;
+}
+
+h2 {
+  font-size: 18px;
+  margin-top: 32px;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--neutral-900);
+  color: #ffffff;
+}
+
+.brand {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nav-button {
+  font: inherit;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.nav-button:hover {
+  color: #ffffff;
+  background: var(--neutral-700);
+}
+
+.nav-button.active {
+  color: #ffffff;
+  background: var(--primary-700);
+}
+
+.app-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.muted {
+  color: var(--neutral-500);
+  margin: 0;
+}
+
+.error {
+  color: var(--error-600);
+  margin: 0;
+}
+
+.inline-form,
+.car-form,
+.marker-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius);
+}
+
+.inline-form input {
+  flex: 1 1 280px;
+}
+
+.car-form input,
+.car-form select {
+  flex: 1 1 180px;
+}
+
+.marker-form input {
+  flex: 1 1 160px;
+}
+
+input,
+select {
+  font: inherit;
+  padding: 8px 12px;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius);
+  background: #ffffff;
+  color: var(--neutral-900);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary-600);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+}
+
+button {
+  font: inherit;
+}
+
+.primary-button,
+.danger-button {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.primary-button {
+  background: var(--primary-600);
+  color: #ffffff;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: var(--primary-700);
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.danger-button {
+  background: transparent;
+  border-color: var(--danger-600);
+  color: var(--danger-600);
+}
+
+.danger-button:hover {
+  background: var(--danger-600);
+  color: #ffffff;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius);
+}
+
+.selectors {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.selectors label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.selectors select {
+  font-weight: 400;
+}
+
+.markers-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.markers-table th,
+.markers-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--neutral-100);
+}
+
+.markers-table th {
+  font-size: 14px;
+  color: var(--neutral-500);
+  font-weight: 600;
+}
+
+.markers-table tbody tr:hover {
+  background: var(--neutral-50);
+}
+
+.right {
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .app-main {
+    padding: 24px 16px;
+  }
+
+  .markers-table th:nth-child(4),
+  .markers-table td:nth-child(4) {
+    display: none;
+  }
+}
